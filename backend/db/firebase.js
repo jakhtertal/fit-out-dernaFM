@@ -11,34 +11,37 @@ function getDb() {
   return firestoreDb;
 }
 
-async function initFirebase() {
-  let serviceAccount;
+// Synchronous init — works in Cloud Functions AND local
+function initFirebase() {
+  if (admin.apps.length) return; // Already initialised
 
-  // Cloud deployment: credentials come from environment variable
-  if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
-    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-    console.log('🔑  Firebase: credentials loaded from environment variable');
+  if (process.env.FIREBASE_CONFIG || process.env.K_SERVICE) {
+    // Running inside Firebase Cloud Functions — credentials are automatic
+    admin.initializeApp();
+    console.log('🔑  Firebase: Cloud Functions (auto credentials)');
+  } else if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+    admin.initializeApp({
+      credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)),
+    });
+    console.log('🔑  Firebase: env variable credentials');
   } else {
-    // Local development: credentials from JSON file
-    const saPath = process.env.FIREBASE_SERVICE_ACCOUNT
-      || path.join(__dirname, '..', 'firebase-service-account.json');
-
+    const saPath = path.join(__dirname, '..', 'firebase-service-account.json');
     if (!fs.existsSync(saPath)) {
-      console.error('\n❌  Firebase service account JSON not found.');
-      console.error('    Local:  Place firebase-service-account.json in /backend folder');
-      console.error('    Cloud:  Set FIREBASE_SERVICE_ACCOUNT_JSON environment variable\n');
+      console.error('\n❌  firebase-service-account.json not found in /backend\n');
       process.exit(1);
     }
-    serviceAccount = JSON.parse(fs.readFileSync(saPath, 'utf8'));
-  }
-
-  if (!admin.apps.length) {
-    admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+    admin.initializeApp({
+      credential: admin.credential.cert(JSON.parse(fs.readFileSync(saPath, 'utf8'))),
+    });
   }
 
   firestoreDb = admin.firestore();
   console.log('✅  Firebase Firestore connected');
-  await seedDatabase();
+
+  // Seed runs async/non-blocking — won't delay first request
+  seedDatabase()
+    .then(() => console.log('✅  Database seed complete'))
+    .catch(err => console.error('⚠️  Seed error:', err.message));
 }
 
 async function seedDatabase() {
@@ -131,8 +134,6 @@ async function seedDatabase() {
     });
     console.log('✅  Default admin: admin@derna.com / admin123');
   }
-
-  console.log('✅  Database seed complete');
 }
 
 module.exports = { getDb, initFirebase };
