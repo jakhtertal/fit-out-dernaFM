@@ -1,0 +1,14 @@
+{
+  "name": "derna-fm-fitout",
+  "version": "1.0.0",
+  "description": "DERNA FM – SUMOU GATE MADINAH Fit-Out Management System",
+  "scripts": {
+    "build":   "cd frontend && npm install && npm run build",
+    "start":   "cd backend && node index.js",
+    "dev:backend":  "cd backend && node index.js",
+    "dev:frontend": "cd frontend && npm run dev"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

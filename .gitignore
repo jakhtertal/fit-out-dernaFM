@@ -1,0 +1,9 @@
+node_modules/
+.env
+backend/firebase-service-account.json
+backend/firebase-service-account.json.json
+backend/data/
+frontend/dist/
+*.log
+.DS_Store
+Thumbs.db
