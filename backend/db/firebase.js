@@ -27,8 +27,9 @@ function initFirebase() {
   } else {
     const saPath = path.join(__dirname, '..', 'firebase-service-account.json');
     if (!fs.existsSync(saPath)) {
-      console.error('\n❌  firebase-service-account.json not found in /backend\n');
-      process.exit(1);
+      const msg = 'Firebase credentials not found. Set FIREBASE_SERVICE_ACCOUNT_JSON env variable in Vercel dashboard.';
+      console.error('❌ ' + msg);
+      throw new Error(msg);   // throw instead of process.exit — works in serverless
     }
     admin.initializeApp({
       credential: admin.credential.cert(JSON.parse(fs.readFileSync(saPath, 'utf8'))),
