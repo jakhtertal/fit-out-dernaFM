@@ -5,8 +5,7 @@
   "functions": {
     "api/index.js": {
       "memory": 1024,
-      "maxDuration": 60,
-      "includeFiles": "backend/**"
+      "maxDuration": 60
     }
   },
   "rewrites": [
